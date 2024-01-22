@@ -2,64 +2,27 @@ import UIKit
 
 final class MovieQuizViewController: UIViewController {
     
+    private let questionsAmount: Int = 10
+    private var questionFactory: QuestionFactory = QuestionFactory()
+    private var currentQuestion: QuizQuestion?
+    
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLabel: UILabel!
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var yesButton: UIButton!
     
-    private let questions: [QuizQuestion] = [
-            QuizQuestion(
-                image: "The Godfather",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: true),
-            QuizQuestion(
-                image: "The Dark Knight",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: true),
-            QuizQuestion(
-                image: "Kill Bill",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: true),
-            QuizQuestion(
-                image: "The Avengers",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: true),
-            QuizQuestion(
-                image: "Deadpool",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: true),
-            QuizQuestion(
-                image: "The Green Knight",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: true),
-            QuizQuestion(
-                image: "Old",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: false),
-            QuizQuestion(
-                image: "The Ice Age Adventures of Buck Wild",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: false),
-            QuizQuestion(
-                image: "Tesla",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: false),
-            QuizQuestion(
-                image: "Vivarium",
-                text: "Рейтинг этого фильма больше чем 6?",
-                correctAnswer: false)
-        ]
-    
     private var currentIndex: Int = 0 {
         didSet {
-            if(currentIndex >= questions.count) {
+            if(currentIndex >= questionsAmount) {
                 show(quiz: QuizResultsViewModel(
                     title: "Этот раунд закончен",
-                    text: "Ваш результат: \(correctAnswers) из \(questions.count)",
+                    text: "Ваш результат: \(correctAnswers) из \(questionsAmount)",
                     buttonText: "Сыграть еще раз"));
             } else {
-                show(quiz: convert(model: questions[currentIndex]))
+                guard let question = questionFactory.requestNextQuestion() else {return}
+                currentQuestion = question
+                show(quiz: convert(model: question))
             }
         }
     }
@@ -69,14 +32,16 @@ final class MovieQuizViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         imageView.layer.masksToBounds = true
-        show(quiz: convert(model: questions[currentIndex]))
+        guard let question = questionFactory.requestNextQuestion() else {return}
+        currentQuestion = question
+        show(quiz: convert(model: question))
     }
     
     // MARK: - Methods
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
         let image = UIImage(named: model.image)!
         let question = model.text
-        let questionNumber = "\(currentIndex+1)/\(questions.count)";
+        let questionNumber = "\(currentIndex+1)/\(questionsAmount)";
         
         return QuizStepViewModel(image: image, question: question, questionNumber: questionNumber)
     }
@@ -131,103 +96,15 @@ final class MovieQuizViewController: UIViewController {
     
     // MARK: - Callbacks
     @IBAction private func yesBtnPressed(_ sender: Any) {
-        let correctAnswer = questions[currentIndex].correctAnswer;
+        guard let question = currentQuestion else {return}
+        let correctAnswer = question.correctAnswer;
         showAnswerResult(isCorrect: correctAnswer);
         
     }
     
     @IBAction private func noBtnPressed(_ sender: Any) {
-        let correctAnswer = questions[currentIndex].correctAnswer;
+        guard let question = currentQuestion else {return}
+        let correctAnswer = question.correctAnswer;
         showAnswerResult(isCorrect: !correctAnswer);
     }
 }
-
-struct QuizQuestion {
-    let image: String
-    let text: String
-    let correctAnswer: Bool
-}
-
-// вью модель для состояния "Вопрос показан"
-struct QuizStepViewModel {
-  // картинка с афишей фильма с типом UIImage
-  let image: UIImage
-  // вопрос о рейтинге квиза
-  let question: String
-  // строка с порядковым номером этого вопроса (ex. "1/10")
-  let questionNumber: String
-}
-
-// для состояния "Результат квиза"
-struct QuizResultsViewModel {
-  // строка с заголовком алерта
-  let title: String
-  // строка с текстом о количестве набранных очков
-  let text: String
-  // текст для кнопки алерта
-  let buttonText: String
-}
-
-/*
- Mock-данные
- 
- 
- Картинка: The Godfather
- Настоящий рейтинг: 9,2
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Dark Knight
- Настоящий рейтинг: 9
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Kill Bill
- Настоящий рейтинг: 8,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Avengers
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Deadpool
- Настоящий рейтинг: 8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: The Green Knight
- Настоящий рейтинг: 6,6
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: ДА
-
-
- Картинка: Old
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: The Ice Age Adventures of Buck Wild
- Настоящий рейтинг: 4,3
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: Tesla
- Настоящий рейтинг: 5,1
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
-
-
- Картинка: Vivarium
- Настоящий рейтинг: 5,8
- Вопрос: Рейтинг этого фильма больше чем 6?
- Ответ: НЕТ
- */
