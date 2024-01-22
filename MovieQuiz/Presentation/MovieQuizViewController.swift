@@ -3,7 +3,7 @@ import UIKit
 final class MovieQuizViewController: UIViewController {
     
     private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactory = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
     private var currentQuestion: QuizQuestion?
     
     @IBOutlet private weak var counterLabel: UILabel!
