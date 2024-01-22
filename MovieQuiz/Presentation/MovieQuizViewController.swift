@@ -1,9 +1,9 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private let questionsAmount: Int = 10
-    private var questionFactory: QuestionFactoryProtocol = QuestionFactory()
+    private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     
     @IBOutlet private weak var counterLabel: UILabel!
@@ -20,9 +20,7 @@ final class MovieQuizViewController: UIViewController {
                     text: "Ваш результат: \(correctAnswers) из \(questionsAmount)",
                     buttonText: "Сыграть еще раз"));
             } else {
-                guard let question = questionFactory.requestNextQuestion() else {return}
-                currentQuestion = question
-                show(quiz: convert(model: question))
+                questionFactory?.requestNextQuestion()
             }
         }
     }
@@ -31,8 +29,16 @@ final class MovieQuizViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        questionFactory = QuestionFactory()
+        guard var questionFactory = questionFactory else {return}
+        questionFactory.delegate = self
+        questionFactory.requestNextQuestion()
         imageView.layer.masksToBounds = true
-        guard let question = questionFactory.requestNextQuestion() else {return}
+    }
+    
+    // MARK: - QuestionFactoryDelegate
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question = question else {return}
         currentQuestion = question
         show(quiz: convert(model: question))
     }
