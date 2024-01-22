@@ -5,6 +5,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private let questionsAmount: Int = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
+    private var alertPresenter: AlertPresenter?
     
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var imageView: UIImageView!
@@ -15,10 +16,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var currentIndex: Int = 0 {
         didSet {
             if(currentIndex >= questionsAmount) {
-                show(quiz: QuizResultsViewModel(
+                alertPresenter?.showGameResult(QuizResultsViewModel(
                     title: "Этот раунд закончен",
                     text: "Ваш результат: \(correctAnswers) из \(questionsAmount)",
-                    buttonText: "Сыграть еще раз"));
+                    buttonText: "Сыграть еще раз")) {
+                        self.currentIndex = 0
+                    }
             } else {
                 questionFactory?.requestNextQuestion()
             }
@@ -30,6 +33,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         questionFactory = QuestionFactory()
+        alertPresenter = AlertPresenter()
+        guard var alertPresenter = alertPresenter else {return}
+        alertPresenter.delegate = self
         guard var questionFactory = questionFactory else {return}
         questionFactory.delegate = self
         questionFactory.requestNextQuestion()
@@ -82,7 +88,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private func showAnswerResult(isCorrect: Bool) {
         yesButton.isEnabled = false
         noButton.isEnabled = false
-    
+        
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
         
