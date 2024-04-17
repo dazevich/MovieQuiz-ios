@@ -6,6 +6,7 @@
 //
 
 import XCTest
+@testable import MovieQuiz
 
 class MovieQuizUITests: XCTestCase {
     var app: XCUIApplication!

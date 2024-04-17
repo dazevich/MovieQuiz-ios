@@ -9,30 +9,18 @@ import Foundation
 import UIKit
 
 class AlertPresenter {
-    weak var delegate: UIViewController?
-    
-    func showGameResult(_ quizResult: QuizResultsViewModel, onPressed: @escaping () -> Void) -> Void {
-        let data : AlertModel = AlertModel(
-            title: quizResult.title,
-            message: quizResult.text,
-            buttonText: quizResult.buttonText,
-            completion: onPressed
-        );
-        
-        showGameResultAlert(data: data)
-    }
-    
-    private func showGameResultAlert(data: AlertModel) -> Void {
+    func show(in vc: UIViewController, model: AlertModel) {
         let alert = UIAlertController(
-            title: data.title,
-            message: data.message,
+            title: model.title,
+            message: model.message,
             preferredStyle: .alert)
-        let action = UIAlertAction(title: data.buttonText, style: .default) { _ in
-            data.completion()
+
+        let action = UIAlertAction(title: model.buttonText, style: .default) { _ in
+            model.completion()
         }
-        
+
         alert.addAction(action)
-        
-        delegate?.present(alert, animated: true)
+
+        vc.present(alert, animated: true, completion: nil)
     }
 }
